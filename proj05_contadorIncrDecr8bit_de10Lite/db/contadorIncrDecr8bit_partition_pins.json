@@ -1,0 +1,141 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "led_out[0]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[1]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[2]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[3]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[4]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[5]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[6]",
+					"strict" : false
+				},
+				{
+					"name" : "led_out[7]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[0]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[1]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[2]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[3]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[4]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[5]",
+					"strict" : false
+				},
+				{
+					"name" : "dec0_out[6]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[0]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[1]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[2]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[3]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[4]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[5]",
+					"strict" : false
+				},
+				{
+					"name" : "dec1_out[6]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[0]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[2]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[3]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[4]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[5]",
+					"strict" : false
+				},
+				{
+					"name" : "dec2_out[6]",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "rst",
+					"strict" : false
+				},
+				{
+					"name" : "incr",
+					"strict" : false
+				},
+				{
+					"name" : "decr",
+					"strict" : false
+				},
+				{
+					"name" : "en",
+					"strict" : false
+				}
+			]
+		}
+	]
+}
