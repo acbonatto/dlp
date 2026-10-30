@@ -1,0 +1,7 @@
+// Decodificador BCD para display de 7 segmentos
+
+module dec7seg (
+
+)
+
+endmodule
