@@ -1,0 +1,51 @@
+//---------------------------------------------------------------------
+// Módulo contador binário de 8-bits com incremento/decremento 
+// e divisor de clock interno, através da variável divConta.
+//---------------------------------------------------------------------
+module contadorIncrDecr8bit (
+	input  wire			clk, rst, en,
+	input  wire			incr, decr,
+	output wire [7:0] duty
+);
+
+	// sinais internos
+	reg [7:0] conta_reg;
+	reg habConta; // pulso para habilitar contagem 
+	reg [31:0] divConta;
+	
+	// Divisor de clock - gera pulso em habConta
+	always @(posedge clk or posedge rst) begin
+		if (rst)
+			divConta = 32'd0;
+		else begin
+			if (en) begin
+				if (divConta == 4999999) begin // 50e6 Hz / 5e6 = 10 Hz
+					habConta = 1'b1;
+					divConta = 32'd0;
+				end else begin
+					habConta = 1'b0;
+					divConta = divConta + 1'b1;
+				end
+			end else
+				divConta = divConta;
+		end
+	end	
+	
+	// Contador
+	always @(posedge clk or posedge rst) begin
+		if (rst) 
+			conta_reg = 0;
+		else if (habConta) begin
+			if (incr==1'b1 & decr==1'b0)
+				conta_reg = conta_reg + 1;
+			else if (incr==1'b0 & decr==1'b1)
+				conta_reg = conta_reg - 1;
+			else
+				conta_reg = conta_reg;
+		end
+	end
+
+	// Saída
+	assign duty = conta_reg;
+
+endmodule

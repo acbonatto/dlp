@@ -1,0 +1,260 @@
+// Controle de saída PWM com incremento e decremento do 
+// duty-cycle, feito através de um contador de 8-bits.
+//
+// Prof. Bonatto - IFRS
+//
+//---------------------------------------------------------------------
+// Módulo topo
+//---------------------------------------------------------------------
+module controlePwm (
+  input wire  clk, rst, 
+  input wire  En_I, Incr_I, Decr_I,
+  output reg  pwm_O,
+  output reg [7:0] Dec0_out, Dec1_out, Dec2_out
+);
+  
+  // Sinais internos
+  parameter C_PRESCALER = 8'd2;
+  wire [7:0] duty;
+  
+  
+  // Coneta os módulos
+  pwm u_pwm(
+  	 .clk(clk), 
+  	 .rst(rst), 
+  	 .Prescaler_I(C_PRESCALER),
+    .Duty_I(duty),
+    .pwm_O(pwm_O)
+  );
+
+  contadorIncrDecr8bit u_contadorIncrDecr8bit(
+	.clk(clk), .rst(rst), .en(En_I),
+	.incr(Incr_I), 
+	.decr(Decr_I),
+	.duty(duty)
+  );
+	
+  // Modulo decodificador binário 8-bits para BCD 3 dígitos
+  decBinBCD3dig u_decBinBCD3dig(
+    .bin_in(duty),
+    .led_out(), // não conectado
+    .dec0_out(Dec0_out),
+    .dec1_out(Dec1_out),
+    .dec2_out(Dec2_out)
+  );
+
+endmodule
+
+
+//---------------------------------------------------------------------
+// Módulo PWM de 8-bits
+//---------------------------------------------------------------------
+module pwm (
+  input 	  clk, rst,
+  input [7:0] Prescaler_I,
+  input [7:0] Duty_I,
+  output reg  pwm_O
+);
+
+  reg [7:0] clk_counter;
+  reg [7:0] pwm_counter;
+  reg pwm_en;
+
+  // 1. Divisor de Clock (Prescaler) com Clock Enable
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      clk_counter <= 0;
+      pwm_en <= 1'b0;
+    end else if (clk_counter >= Prescaler_I) begin
+      clk_counter <= 0;
+      pwm_en <= 1'b1; // gera o pulso quando o contador zera
+    end else begin
+      clk_counter <= clk_counter + 1'b1;
+      pwm_en <= 1'b0;
+    end
+  end
+
+  // 2. Contador do PWM 
+  always @(posedge clk or posedge rst) begin
+    if (rst)
+      pwm_counter <= 0;
+    else if (pwm_en)
+      pwm_counter <= pwm_counter + 1'b1;
+    else
+      pwm_counter <= pwm_counter;
+  end
+
+  // 3. Comparador para Saída PWM (Síncrono com o clock principal)
+  assign pwm_O = (Duty_I >= pwm_counter);
+
+endmodule
+
+
+
+//---------------------------------------------------------------------
+// Módulo decodificador de entrada binária 8-bits para saída 
+// BCD de 3 dígitos
+// Decodificador de entrada binaria (8-bits) para saida BCD 
+// com tamanho de 3 digitos, para faixa 0 a 255
+//		dec0_out = unidade, 
+//    dec1_out = dezena,
+//		dec2_out = centena
+//---------------------------------------------------------------------
+module decBinBCD3dig (
+	input  wire [7:0] bin_in,
+	output wire [9:0] led_out,
+	output reg [7:0] dec0_out,
+	output reg [7:0] dec1_out,
+	output reg [7:0] dec2_out
+);
+
+	wire [7:0] bcd_div_10, bcd_div_100;
+	wire [3:0] bcd0_reg, bcd1_reg, bcd2_reg;
+	
+	// Divisao por 10
+	assign bcd_div_10 = bin_in / 8'd10;
+	
+	// Digito Unidade (BCD-0): resto da divisao por 10
+	assign bcd0_reg = bin_in % 8'd10;
+
+	// Digito Dezena (BCD-1): resto da divisao por 100
+	assign bcd1_reg = bcd_div_10 % 8'd10;
+
+	// Digito Centena (BCD-2): resultado da divisao por 100
+	assign bcd2_reg = bcd_div_10 / 8'd10;
+
+	// Saida 7 segmentos
+	always @(*) begin
+		if (bcd0_reg == 4'd0) 
+			dec0_out = 8'b11000000;
+		else if (bcd0_reg == 4'd1) 
+			dec0_out = 8'b11111001;
+		else if (bcd0_reg == 4'd2) 
+			dec0_out = 8'b10100100;
+		else if (bcd0_reg == 4'd3) 
+			dec0_out = 8'b10110000;
+		else if (bcd0_reg == 4'd4) 
+			dec0_out = 8'b10011001;
+		else if (bcd0_reg == 4'd5) 
+			dec0_out = 8'b10010010;
+		else if (bcd0_reg == 4'd6) 
+			dec0_out = 8'b10000011;
+		else if (bcd0_reg == 4'd7) 
+			dec0_out = 8'b11111000;
+		else if (bcd0_reg == 4'd8) 
+			dec0_out = 8'b10000000;
+		else if (bcd0_reg == 4'd9) 
+			dec0_out = 8'b10011000;
+		else
+			dec0_out = 8'b11111111;	
+	end
+	
+	// Saida 7 segmentos
+	always @(*) begin
+		if (bcd1_reg == 4'd0) 
+			dec1_out = 8'b11000000;
+		else if (bcd1_reg == 4'd1) 
+			dec1_out = 8'b11111001;
+		else if (bcd1_reg == 4'd2) 
+			dec1_out = 8'b10100100;
+		else if (bcd1_reg == 4'd3) 
+			dec1_out = 8'b10110000;
+		else if (bcd1_reg == 4'd4) 
+			dec1_out = 8'b10011001;
+		else if (bcd1_reg == 4'd5) 
+			dec1_out = 8'b10010010;
+		else if (bcd1_reg == 4'd6) 
+			dec1_out = 8'b10000011;
+		else if (bcd1_reg == 4'd7) 
+			dec1_out = 8'b11111000;
+		else if (bcd1_reg == 4'd8) 
+			dec1_out = 8'b10000000;
+		else if (bcd1_reg == 4'd9) 
+			dec1_out = 8'b10011000;
+		else
+			dec1_out = 8'b11111111;	
+	end
+	
+	// Saida 7 segmentos
+	always @(*) begin
+		if (bcd2_reg == 4'd0) 
+			dec2_out = 8'b11000000;
+		else if (bcd2_reg == 4'd1) 
+			dec2_out = 8'b11111001;
+		else if (bcd2_reg == 4'd2) 
+			dec2_out = 8'b10100100;
+		else if (bcd2_reg == 4'd3) 
+			dec2_out = 8'b10110000;
+		else if (bcd2_reg == 4'd4) 
+			dec2_out = 8'b10011001;
+		else if (bcd2_reg == 4'd5) 
+			dec2_out = 8'b10010010;
+		else if (bcd2_reg == 4'd6) 
+			dec2_out = 8'b10000011;
+		else if (bcd2_reg == 4'd7) 
+			dec2_out = 8'b11111000;
+		else if (bcd2_reg == 4'd8) 
+			dec2_out = 8'b10000000;
+		else if (bcd2_reg == 4'd9) 
+			dec2_out = 8'b10011000;
+		else
+			dec2_out = 8'b11111111;	
+	end
+	
+	assign led_out[7:0] = bin_in;
+	assign led_out[9:8] = 2'b00;
+	
+endmodule
+
+//---------------------------------------------------------------------
+// Módulo contador binário de 8-bits com incremento/decremento 
+// e divisor de clock interno, através da variável divConta.
+//---------------------------------------------------------------------
+module contadorIncrDecr8bit (
+	input  wire			clk, rst, en,
+	input  wire			incr, decr,
+	output wire [7:0] duty
+);
+
+	// sinais internos
+	reg [7:0] conta_reg;
+	reg habConta; // pulso para habilitar contagem 
+	reg [31:0] divConta;
+	
+	// Divisor de clock - gera pulso em habConta
+	always @(posedge clk or posedge rst) begin
+		if (rst)
+			divConta = 32'd0;
+		else begin
+			if (en) begin
+				if (divConta == 4999999) begin // 50e6 Hz / 5e6 = 10 Hz
+					habConta = 1'b1;
+					divConta = 32'd0;
+				end else begin
+					habConta = 1'b0;
+					divConta = divConta + 1'b1;
+				end
+			end else
+				divConta = divConta;
+		end
+	end	
+	
+	// Contador
+	always @(posedge clk or posedge rst) begin
+		if (rst) 
+			conta_reg = 0;
+		else if (habConta) begin
+			if (incr==1'b1 & decr==1'b0)
+				conta_reg = conta_reg + 1;
+			else if (incr==1'b0 & decr==1'b1)
+				conta_reg = conta_reg - 1;
+			else
+				conta_reg = conta_reg;
+		end
+	end
+
+	// Saída
+	assign duty = conta_reg;
+
+endmodule
+

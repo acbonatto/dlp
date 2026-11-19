@@ -1,0 +1,42 @@
+//---------------------------------------------------------------------
+// Módulo PWM de 8-bits
+//---------------------------------------------------------------------
+module pwm (
+  input 	  clk, rst,
+  input [7:0] Prescaler_I,
+  input [7:0] Duty_I,
+  output   pwm_O
+);
+
+  reg [7:0] clk_counter;
+  reg [7:0] pwm_counter;
+  reg pwm_en;
+
+  // 1. Divisor de Clock (Prescaler) com Clock Enable
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      clk_counter <= 0;
+      pwm_en <= 1'b0;
+    end else if (clk_counter >= Prescaler_I) begin
+      clk_counter <= 0;
+      pwm_en <= 1'b1; // gera o pulso quando o contador zera
+    end else begin
+      clk_counter <= clk_counter + 1'b1;
+      pwm_en <= 1'b0;
+    end
+  end
+
+  // 2. Contador do PWM 
+  always @(posedge clk or posedge rst) begin
+    if (rst)
+      pwm_counter <= 0;
+    else if (pwm_en)
+      pwm_counter <= pwm_counter + 1'b1;
+    else
+      pwm_counter <= pwm_counter;
+  end
+
+  // 3. Comparador para Saída PWM (Síncrono com o clock principal)
+  assign pwm_O = (Duty_I >= pwm_counter);
+
+endmodule
